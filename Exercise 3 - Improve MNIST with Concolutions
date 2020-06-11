@@ -1,0 +1,94 @@
+For your exercise see if you can imporove MNIST accuracy to 99.8% accuracy or more, using only a single convolutional layer
+and a single MaxPooling 2D. you should stop training once the accuracy goes above this amount.
+It should happen in less than 20 epochs, so it's ok to hard code the number of epochs for training, but your training must end
+once it hits the above metric. If it doesn't, then you will need to redesign your layers.
+When 99.8% accuracy has been hit, you should print out the string "Reached 99.8% accuracy so cancelling training!".
+
+import tensorflow as tf
+from os import path, getcwd, chdir
+
+# DO NOT CHANGE THE LINE BELOW. If you are developing in a local
+# environment, then grab mnist.npz from the Coursera Jupyter Notebook
+# and place it inside a local folder and edit the path to that location
+path = f"{getcwd()}/../tmp2/mnist.npz"
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+
+# GRADED FUNCTION: train_mnist_conv
+def train_mnist_conv():
+    # Please write your code only where you are indicated.
+    # please do not remove model fitting inline comments.
+
+    class myCallback(tf.keras.callbacks.Callback):
+        def on_epoch_end(self, epoch, logs={}):
+            if(logs.get('acc')>0.998):
+                print("\nReached 99.8% accuracy so cancelling training!")
+                self.model.stop_training = True
+    
+    mnist = tf.keras.datasets.mnist
+    (training_images, training_labels), (test_images, test_labels) = mnist.load_data(path=path)
+    # YOUR CODE STARTS HERE
+    callbacks = myCallback()
+    training_images=training_images.reshape(60000, 28, 28, 1) 
+    test_images = test_images.reshape(10000, 28, 28, 1) 
+    training_images  = training_images / 255.0
+    test_images = test_images / 255.0
+    
+    # YOUR CODE ENDS HERE
+
+    model = tf.keras.models.Sequential([
+            # YOUR CODE STARTS HERE
+        tf.keras.layers.Conv2D(64, (3,3), activation = 'relu', input_shape = (28,28,1)),
+        tf.keras.layers.MaxPooling2D (2,2),
+        tf.keras.layers.Conv2D(64, (3,3), activation = 'relu'),
+        tf.keras.layers.MaxPooling2D(2,2),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(1024, activation = tf.nn.relu),
+        tf.keras.layers.Dense(512, activation = tf.nn.relu),
+        tf.keras.layers.Dense(10, activation = tf.nn.softmax)
+
+            # YOUR CODE ENDS HERE
+    ])
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    # model fitting
+    history = model.fit(
+        # YOUR CODE STARTS HERE
+        training_images, training_labels, epochs=19, callbacks=[callbacks])
+
+        # YOUR CODE ENDS HERE
+    
+    # model fitting
+    return history.epoch, history.history['acc'][-1]
+
+MY RESULT:
+Epoch 1/19
+60000/60000 [==============================] - 18s 305us/sample - loss: 0.1086 - acc: 0.9659
+Epoch 2/19
+60000/60000 [==============================] - 17s 288us/sample - loss: 0.0415 - acc: 0.9870
+Epoch 3/19
+60000/60000 [==============================] - 18s 303us/sample - loss: 0.0293 - acc: 0.9911
+Epoch 4/19
+60000/60000 [==============================] - 18s 302us/sample - loss: 0.0225 - acc: 0.9930
+Epoch 5/19
+60000/60000 [==============================] - 17s 285us/sample - loss: 0.0170 - acc: 0.9949
+Epoch 6/19
+60000/60000 [==============================] - 18s 307us/sample - loss: 0.0149 - acc: 0.9957
+Epoch 7/19
+60000/60000 [==============================] - 17s 285us/sample - loss: 0.0136 - acc: 0.9959
+Epoch 8/19
+60000/60000 [==============================] - 17s 288us/sample - loss: 0.0116 - acc: 0.9967
+Epoch 9/19
+60000/60000 [==============================] - 17s 288us/sample - loss: 0.0091 - acc: 0.9974
+Epoch 10/19
+60000/60000 [==============================] - 17s 288us/sample - loss: 0.0095 - acc: 0.9975
+Epoch 11/19
+60000/60000 [==============================] - 17s 288us/sample - loss: 0.0090 - acc: 0.9975
+Epoch 12/19
+60000/60000 [==============================] - 18s 297us/sample - loss: 0.0088 - acc: 0.9979
+Epoch 13/19
+59776/60000 [============================>.] - ETA: 0s - loss: 0.0067 - acc: 0.9983
+Reached 99.8% accuracy so cancelling training!
+60000/60000 [==============================] - 18s 302us/sample - loss: 0.0068 - acc: 0.9983
